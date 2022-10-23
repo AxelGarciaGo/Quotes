@@ -1,19 +1,16 @@
 package com.example.quotescelebrities.presentation.View
 
-import android.os.Bundle
-import androidx.activity.viewModels
+
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
-import com.example.quotescelebrities.data.local.QuoteDB
-import com.example.quotescelebrities.data.local.daos.QuoteDao
+import android.os.Bundle
+import android.text.TextUtils
+import android.widget.Toast
+import androidx.lifecycle.ViewModelProvider
 import com.example.quotescelebrities.data.local.entities.QuoteEntity
 import com.example.quotescelebrities.databinding.ActivityQuoteAddBinding
+import com.example.quotescelebrities.domain.model.QuoteModel
 import com.example.quotescelebrities.presentation.View_Model.QuoteAddViewModel
-import dagger.Provides
 import dagger.hilt.android.AndroidEntryPoint
-import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.CoroutineScope
-import javax.inject.Singleton
 
 
 @AndroidEntryPoint
@@ -21,41 +18,44 @@ import javax.inject.Singleton
 class QuoteAddActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityQuoteAddBinding
-    private val quoteAddViewModel: QuoteAddViewModel by viewModels()
+    private lateinit var mUserViewModel: QuoteAddViewModel
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        quoteAddViewModel.toString()
 
+        mUserViewModel = ViewModelProvider(this).get(QuoteAddViewModel::class.java)
+
+        super.onCreate(savedInstanceState)
         binding = ActivityQuoteAddBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        binding.btnGuardar.setOnClickListener {
-
-            save()
+        // setContentView(R.layout.activity_add_quote)
+        
+        binding.buttonAddQuote.setOnClickListener {
+            insertDataToDatabase()
         }
-
     }
 
-    private suspend fun save(){
+    private fun insertDataToDatabase() {
+        val addAuthor = binding.edtAddAuthor.text.toString()
+        val addQuote = binding.edtAddQuote.text.toString()
 
-        var addAuthor = binding.txtAutor.text.toString()
-        var addQuote = binding.txtCita.text.toString()
+        if (inputCheck(addAuthor, addQuote)){
 
-        val bd=QuoteDB.getDatabase(applicationContext,
-        lifecycleScope).quoteDao()
+            //Create Quote object
+            val quote = QuoteEntity(0, addAuthor, addQuote)
 
-        popula(bd)
+            //Add to database
+            mUserViewModel.addQuote(quote)
+            Toast.makeText(this, "Cita agregada Correctamente", Toast.LENGTH_SHORT).show()
+            binding.edtAddQuote.text.clear()
+            binding.edtAddAuthor.text.clear()
 
-
+        }else{
+            Toast.makeText(this, "No se ah podido crear la cita", Toast.LENGTH_SHORT).show()
+        }
     }
 
-    private suspend fun popula(quoteDao: QuoteDao) {
-        val quote = QuoteEntity(
-            id = 19,
-            quote =,
-            author = "Sócrates"
-        )
-        quoteDao.insert(quote)
+    private fun inputCheck(addAuthor: String, addQuote: String): Boolean{
+        return !(TextUtils.isEmpty(addAuthor) && TextUtils.isEmpty(addQuote))
     }
 }

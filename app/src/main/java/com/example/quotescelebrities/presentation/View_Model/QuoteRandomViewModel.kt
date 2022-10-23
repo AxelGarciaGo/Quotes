@@ -12,7 +12,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-@HiltViewModel
 class QuoteRandomViewModel
 @Inject constructor(private val getQuoteRandomUseCase: GetQuoteRandomUseCase
 ): ViewModel() {
